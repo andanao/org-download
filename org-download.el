@@ -151,6 +151,10 @@ will be used."
                  "xclip -selection clipboard -t image/png -o > %s")
           ;; take an image that is already on the clipboard, for Windows
           (const :tag "imagemagick/convert" "magick clipboard: %s")
+          ;; take an image that is already on the Windows clipboard
+          ;; slower than imagemagick but works an all systems
+          (const :tag "mswindows-clipboard"
+                 "powershell -command \"Add-Type -AssemblyName System.Windows.Forms;if ($([System.Windows.Forms.Clipboard]::ContainsImage())) {$image = [System.Windows.Forms.Clipboard]::GetImage();[System.Drawing.Bitmap]$image.Save('c:/users/adanaos/downloads/powershell.png',[System.Drawing.Imaging.ImageFormat]::Png)} \"")
           ;; capture region, for Wayland
           (const :tag "grim + slurp" "grim -g \"$(slurp)\" %s")
           (function :tag "Custom function")))
@@ -410,9 +414,9 @@ The screenshot tool is determined by `org-download-screenshot-method'."
                  "Please install the \"xclip\" program"))))
            ((windows-nt cygwin)
             (if (executable-find "magick")
-                "magick convert clipboard: %s"
-              (user-error
-               "Please install the \"magick\" program included in ImageMagick")))
+                "magick clipboard: %s"
+                ;; fallback for windows always exists
+                "powershell -command \"Add-Type -AssemblyName System.Windows.Forms;if ($([System.Windows.Forms.Clipboard]::ContainsImage())) {$image = [System.Windows.Forms.Clipboard]::GetImage();[System.Drawing.Bitmap]$image.Save('c:/users/adanaos/downloads/powershell.png',[System.Drawing.Imaging.ImageFormat]::Png)} \""))
            ((darwin berkeley-unix)
             (if (executable-find "pngpaste")
                 "pngpaste %s"
